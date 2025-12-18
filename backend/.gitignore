@@ -1,0 +1,6 @@
+target/
+ffmpeg-release-amd64-static.tar.xz
+ffmpeg-*-amd64-static/
+temp_uploads/
+*.log
+Cargo.lock
