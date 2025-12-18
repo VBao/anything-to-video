@@ -5,7 +5,7 @@ WORKDIR /app
 
 # Create a blank project to cache dependencies
 RUN cargo init
-COPY Cargo.toml Cargo.lock ./
+COPY Cargo.toml ./
 RUN cargo build --release
 
 # Copy the source code

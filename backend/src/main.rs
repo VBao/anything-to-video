@@ -16,6 +16,9 @@ use tokio::fs::{self, File};
 use tokio::io::AsyncWriteExt;
 use uuid::Uuid;
 use serde::Deserialize;
+use futures::Stream;
+use std::pin::Pin;
+use std::task::{Context, Poll};
 
 #[derive(Deserialize)]
 struct ConvertParams {
@@ -55,6 +58,33 @@ async fn index() -> Html<&'static str> {
             <input type="submit" value="Upload and Convert">
         </form>
     "#)
+}
+
+struct CleanupStream<S> {
+    inner: S,
+    path: PathBuf,
+}
+
+impl<S: Stream + Unpin> Stream for CleanupStream<S> {
+    type Item = S::Item;
+
+    fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+        Pin::new(&mut self.inner).poll_next(cx)
+    }
+}
+
+impl<S> Drop for CleanupStream<S> {
+    fn drop(&mut self) {
+        let path = self.path.clone();
+        // Spawn a blocking task to remove the file
+        let _ = tokio::task::spawn_blocking(move || {
+             if let Err(e) = std::fs::remove_file(&path) {
+                 eprintln!("Failed to remove temp file {:?}: {}", path, e);
+             } else {
+                 println!("Removed temp file {:?}", path);
+             }
+        });
+    }
 }
 
 #[axum::debug_handler]
@@ -135,15 +165,19 @@ async fn convert_video(
     // Return the file
     let file = File::open(&output_path).await.map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
     let stream = tokio_util::io::ReaderStream::new(file);
-    let body = Body::from_stream(stream);
+
+    // Wrap stream to cleanup file on drop
+    let cleanup_stream = CleanupStream {
+        inner: stream,
+        path: output_path,
+    };
+
+    let body = Body::from_stream(cleanup_stream);
 
     let headers = [
         (header::CONTENT_TYPE, "application/octet-stream"),
         (header::CONTENT_DISPOSITION, &format!("attachment; filename=\"{}\"", output_filename)),
     ];
-
-    // TODO: Cleanup output file after serving. For now, we leave it to avoid deleting while streaming.
-    // A cron job or a custom stream wrapper would be needed for proper cleanup.
 
     Ok((headers, body).into_response())
 }
