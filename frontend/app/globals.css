@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+@theme {
+  --shadow-neumorph: 9px 9px 16px rgb(163,177,198,0.6), -9px -9px 16px rgba(255,255,255, 0.5);
+  --shadow-neumorph-pressed: inset 6px 6px 10px 0 rgba(163,177,198, 0.7), inset -6px -6px 10px 0 rgba(255,255,255, 0.8);
+  --color-background: #E0E5EC;
+  --color-foreground: #4D5B7C;
+  --color-primary: #6D5DF1;
+}
+
+:root {
+  --background: #E0E5EC;
+  --foreground: #4D5B7C;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+}
