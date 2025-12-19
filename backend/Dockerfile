@@ -30,7 +30,7 @@ COPY --from=builder /app/target/release/backend /app/backend
 # Create temp uploads directory
 RUN mkdir -p temp_uploads
 
-EXPOSE 3000
+EXPOSE 8080
 
 ENV FFMPEG_PATH=ffmpeg
 
