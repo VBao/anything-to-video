@@ -1,3 +1,5 @@
+version: "3.8"
+
 services:
   backend:
     build: ./backend
@@ -6,6 +8,11 @@ services:
     environment:
       - FFMPEG_PATH=ffmpeg
       - PORT=8080
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
   frontend:
     build: ./frontend
     ports:
@@ -13,4 +20,5 @@ services:
     environment:
       - BACKEND_URL=http://backend:8080
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy

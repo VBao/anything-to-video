@@ -17,10 +17,11 @@ RUN cargo build --release
 # Final image
 FROM debian:bullseye-slim
 
-# Install ffmpeg and ca-certificates
+# Install ffmpeg and ca-certificates and curl for healthcheck
 RUN apt-get update && apt-get install -y \
     ffmpeg \
     ca-certificates \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
