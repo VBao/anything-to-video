@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/convert',
-        destination: 'http://localhost:8080/convert',
+        destination: `${process.env.BACKEND_URL || 'http://localhost:8080'}/convert`,
       },
     ];
   },
